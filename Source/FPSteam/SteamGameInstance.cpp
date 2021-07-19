@@ -51,9 +51,16 @@ void USteamGameInstance::OnFindSessionComplete(bool Succeeded)
 			}
 
 			FServerInfo Info;
-			Info.ServerName = "Test Server name";
+			FString ServerName = "Empty Server Name";
+			FString HostName = "Empty Host Name";
+
+			Result.Session.SessionSettings.Get(FName("SERVER_NAME_KEY"), ServerName);
+			Result.Session.SessionSettings.Get(FName("SERVER_HOSTNAME_KEY"), HostName);
+
+			Info.ServerName = ServerName;
 			Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
 			Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
+			Info.SetPlayerCount();
 
 			ServerListDel.Broadcast(Info);
 			
@@ -85,7 +92,7 @@ void USteamGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSession
 	}
 }
 
-void USteamGameInstance::CreateServer()
+void USteamGameInstance::CreateServer(FString ServerName, FString HostName)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Create Server"));
 	FOnlineSessionSettings SessionSettings;
@@ -96,6 +103,8 @@ void USteamGameInstance::CreateServer()
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = 5;
 
+	SessionSettings.Set(FName("SERVER_NAME_KEY"), ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	SessionSettings.Set(FName("SERVER_HOSTNAME_KEY"), HostName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	SessionInterface->CreateSession(0, FName("My Session"), SessionSettings);
 }
 

@@ -15,9 +15,16 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FString ServerName;
 	UPROPERTY(BlueprintReadOnly)
+	FString PlayerCountStr;
+	UPROPERTY(BlueprintReadOnly)
 	int32 CurrentPlayers;
 	UPROPERTY(BlueprintReadOnly)
 	int32 MaxPlayers;
+
+	void SetPlayerCount()
+	{
+		PlayerCountStr = FString(FString::FromInt(CurrentPlayers) + "/" + FString::FromInt(MaxPlayers));
+	}
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerDel, FServerInfo, ServerListDel);
@@ -48,7 +55,7 @@ protected:
 	virtual void OnJoinSessionComplete(FName SessionName,EOnJoinSessionCompleteResult::Type Result);
 
 	UFUNCTION(BlueprintCallable)
-	void CreateServer();
+	void CreateServer(FString ServerName , FString HostName);
 
 	UFUNCTION(BlueprintCallable)
 	void JoinServer();
