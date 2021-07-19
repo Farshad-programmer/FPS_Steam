@@ -20,7 +20,9 @@ public:
 	int32 CurrentPlayers;
 	UPROPERTY(BlueprintReadOnly)
 	int32 MaxPlayers;
-
+	UPROPERTY(BlueprintReadOnly)
+	int32 ServerArrayIndex;
+	 
 	void SetPlayerCount()
 	{
 		PlayerCountStr = FString(FString::FromInt(CurrentPlayers) + "/" + FString::FromInt(MaxPlayers));
@@ -28,6 +30,7 @@ public:
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerDel, FServerInfo, ServerListDel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerSearchingDel, bool, SearchingForServer);
 /**
  * 
  */
@@ -41,8 +44,13 @@ public:
 	
 protected:
 
+	FName MySessionName;
+	
 	UPROPERTY(BlueprintAssignable)
 	FServerDel ServerListDel;
+
+	UPROPERTY(BlueprintAssignable)
+	FServerSearchingDel SearchingForServer;
 
 	IOnlineSessionPtr SessionInterface;
 
@@ -50,7 +58,7 @@ protected:
 
 	virtual void Init()override;
 
-	virtual void OnCreateSessionComplete(FName ServerName, bool Succeeded);
+	virtual void OnCreateSessionComplete(FName SessionName, bool Succeeded);
 	virtual void OnFindSessionComplete(bool Succeeded);
 	virtual void OnJoinSessionComplete(FName SessionName,EOnJoinSessionCompleteResult::Type Result);
 
@@ -59,6 +67,11 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void FindServers();
+
+	UFUNCTION(BlueprintCallable)
+	void JoinServer(int32 ArrayIndex);
+
+	
 
 
 	

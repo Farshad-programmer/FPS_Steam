@@ -8,7 +8,7 @@
 
 USteamGameInstance::USteamGameInstance()
 {
-
+	MySessionName = "My Session";
 }
 
 void USteamGameInstance::Init()
@@ -27,7 +27,7 @@ void USteamGameInstance::Init()
 	}
 }
 
-void USteamGameInstance::OnCreateSessionComplete(FName ServerName, bool Succeeded)
+void USteamGameInstance::OnCreateSessionComplete(FName SessionName, bool Succeeded)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnCreateSessionComplete,Succeeded : %d"), Succeeded);
 	if (Succeeded)
@@ -38,11 +38,14 @@ void USteamGameInstance::OnCreateSessionComplete(FName ServerName, bool Succeede
 
 void USteamGameInstance::OnFindSessionComplete(bool Succeeded)
 {
+	SearchingForServer.Broadcast(false);
+	
 	if (Succeeded)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnFindSessionComplete,Succeeded : %d"), Succeeded);
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
 
+		int32 ArrayIndex = 0;
 		for (FOnlineSessionSearchResult Result : SearchResults)
 		{
 			if (!Result.IsValid())
@@ -60,9 +63,11 @@ void USteamGameInstance::OnFindSessionComplete(bool Succeeded)
 			Info.ServerName = ServerName;
 			Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
 			Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
+			Info.ServerArrayIndex = ArrayIndex;
 			Info.SetPlayerCount();
 
 			ServerListDel.Broadcast(Info);
+			ArrayIndex++;
 			
 		}
 
@@ -105,17 +110,41 @@ void USteamGameInstance::CreateServer(FString ServerName, FString HostName)
 
 	SessionSettings.Set(FName("SERVER_NAME_KEY"), ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	SessionSettings.Set(FName("SERVER_HOSTNAME_KEY"), HostName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
-	SessionInterface->CreateSession(0, FName("My Session"), SessionSettings);
+	SessionInterface->CreateSession(0, MySessionName, SessionSettings);
 }
 
 void USteamGameInstance::FindServers()
 {
+	SearchingForServer.Broadcast(true);
+	
 	UE_LOG(LogTemp, Warning, TEXT("Find Servers"));
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->bIsLanQuery = true;// IsLan
 	SessionSearch->MaxSearchResults = 10000;
 	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+	
 }
+
+void USteamGameInstance::JoinServer(int32 ArrayIndex)
+{
+	/*TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;*/
+	
+	
+	FOnlineSessionSearchResult Result = SessionSearch->SearchResults[ArrayIndex];
+	if (Result.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Joining server at index : %d"), ArrayIndex);
+		SessionInterface->JoinSession(0, MySessionName, Result);
+	}
+	
+	
+	
+}
+
+
+
+
+
 
 
