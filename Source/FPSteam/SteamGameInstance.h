@@ -58,7 +58,7 @@ protected:
 	void CreateServer(FString ServerName , FString HostName);
 
 	UFUNCTION(BlueprintCallable)
-	void JoinServer();
+	void FindServers();
 
 
 	

@@ -108,9 +108,9 @@ void USteamGameInstance::CreateServer(FString ServerName, FString HostName)
 	SessionInterface->CreateSession(0, FName("My Session"), SessionSettings);
 }
 
-void USteamGameInstance::JoinServer()
+void USteamGameInstance::FindServers()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Join Server"));
+	UE_LOG(LogTemp, Warning, TEXT("Find Servers"));
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->bIsLanQuery = true;// IsLan
 	SessionSearch->MaxSearchResults = 10000;
