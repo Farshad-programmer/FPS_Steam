@@ -58,14 +58,16 @@ void USteamGameInstance::OnFindSessionComplete(bool Succeeded)
 			FString HostName = "Empty Host Name";
 
 			Result.Session.SessionSettings.Get(FName("SERVER_NAME_KEY"), ServerName);
-			Result.Session.SessionSettings.Get(FName("SERVER_HOSTNAME_KEY"), HostName);
 
 			Info.ServerName = ServerName;
 			Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
 			Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
-			Info.ServerArrayIndex = ArrayIndex;
 			Info.SetPlayerCount();
+			Info.IsLan = Result.Session.SessionSettings.bIsLANMatch;
+			Info.Ping = Result.PingInMs;
+			Info.ServerArrayIndex = ArrayIndex;
 
+			
 			ServerListDel.Broadcast(Info);
 			ArrayIndex++;
 			
@@ -97,8 +99,9 @@ void USteamGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSession
 	}
 }
 
-void USteamGameInstance::CreateServer(FString ServerName, FString HostName)
+void USteamGameInstance::CreateServer(FCreateServerInfo ServerInfo)
 {
+	
 	UE_LOG(LogTemp, Warning, TEXT("Create Server"));
 	FOnlineSessionSettings SessionSettings;
 	SessionSettings.bAllowJoinInProgress = true;
@@ -106,10 +109,10 @@ void USteamGameInstance::CreateServer(FString ServerName, FString HostName)
 	SessionSettings.bIsLANMatch = true;// IsLan
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
-	SessionSettings.NumPublicConnections = 5;
+	SessionSettings.NumPublicConnections = ServerInfo.MaxPlayers;
 
-	SessionSettings.Set(FName("SERVER_NAME_KEY"), ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
-	SessionSettings.Set(FName("SERVER_HOSTNAME_KEY"), HostName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	SessionSettings.Set(FName("SERVER_NAME_KEY"), ServerInfo.ServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	
 	SessionInterface->CreateSession(0, MySessionName, SessionSettings);
 }
 
@@ -128,19 +131,15 @@ void USteamGameInstance::FindServers()
 
 void USteamGameInstance::JoinServer(int32 ArrayIndex)
 {
-	/*TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;*/
-	
-	
 	FOnlineSessionSearchResult Result = SessionSearch->SearchResults[ArrayIndex];
 	if (Result.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Joining server at index : %d"), ArrayIndex);
 		SessionInterface->JoinSession(0, MySessionName, Result);
 	}
-	
-	
-	
 }
+
+
 
 
 

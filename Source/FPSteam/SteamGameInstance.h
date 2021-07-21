@@ -7,6 +7,21 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "SteamGameInstance.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct FCreateServerInfo
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(BlueprintReadWrite)
+	FString ServerName;
+	UPROPERTY(BlueprintReadWrite)
+	int32 MaxPlayers;
+	UPROPERTY(BlueprintReadWrite)
+	bool IsLan;
+};
+
+
 USTRUCT(BlueprintType)
 struct FServerInfo
 {
@@ -17,12 +32,17 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FString PlayerCountStr;
 	UPROPERTY(BlueprintReadOnly)
-	int32 CurrentPlayers;
+	bool IsLan;
 	UPROPERTY(BlueprintReadOnly)
-	int32 MaxPlayers;
+	int32 Ping;
 	UPROPERTY(BlueprintReadOnly)
 	int32 ServerArrayIndex;
-	 
+	
+	int32 CurrentPlayers;
+	int32 MaxPlayers;
+
+	// inja ma ba in metod kari mikonim ke "MaxPlayers" va "CurrentPlayers" ro kenar ham neshon bede.
+	// Rasti Be khater in metod dige niazi nadarim ke variable haye "MaxPlayers" va "CurrentPlayers" dar blueprint namayesh dade shavand leza "BlueprintReadOnly" vasashon nazashtam
 	void SetPlayerCount()
 	{
 		PlayerCountStr = FString(FString::FromInt(CurrentPlayers) + "/" + FString::FromInt(MaxPlayers));
@@ -63,7 +83,7 @@ protected:
 	virtual void OnJoinSessionComplete(FName SessionName,EOnJoinSessionCompleteResult::Type Result);
 
 	UFUNCTION(BlueprintCallable)
-	void CreateServer(FString ServerName , FString HostName);
+	void CreateServer(FCreateServerInfo ServerInfo);
 
 	UFUNCTION(BlueprintCallable)
 	void FindServers();
@@ -72,8 +92,4 @@ protected:
 	void JoinServer(int32 ArrayIndex);
 
 	
-
-
-	
-
 };
