@@ -4,11 +4,38 @@
 #include "SteamGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
+#include "Engine/Texture2D.h"
+#include "UObject/ConstructorHelpers.h"
 #include "OnlineSessionSettings.h"
 
 USteamGameInstance::USteamGameInstance()
 {
+	
 	MySessionName = "My Session";
+	
+	//Hardcode Map 1
+	static::ConstructorHelpers::FObjectFinder<UTexture2D>Map1Image(TEXT("/Game/Steam/MapImages/01"));
+	if (Map1Image.Object)
+	{
+		FMapInfo Map;
+		Map.MapName = "First Person Ex Map";
+		Map.MapURL = "/Game/FirstPersonCPP/Maps/FirstPersonExampleMap";
+		Map.MapImage = Map1Image.Object;
+		MapList.Add(Map);
+
+		//Set Default map for server
+		SelectedMapURL = Map.MapURL;
+	}
+	// Hardcode Map 2
+	static::ConstructorHelpers::FObjectFinder<UTexture2D>Map2Image(TEXT("/Game/Steam/MapImages/02"));
+	if (Map2Image.Object)
+	{
+		FMapInfo Map;
+		Map.MapName = "First Person Ex Map Number 2";
+		Map.MapURL = "/Game/FirstPersonCPP/Maps/FirstPersonExampleMap2";
+		Map.MapImage = Map2Image.Object;
+		MapList.Add(Map);
+	}
 }
 
 void USteamGameInstance::Init()
@@ -32,7 +59,7 @@ void USteamGameInstance::OnCreateSessionComplete(FName SessionName, bool Succeed
 	UE_LOG(LogTemp, Warning, TEXT("OnCreateSessionComplete,Succeeded : %d"), Succeeded);
 	if (Succeeded)
 	{
-		GetWorld()->ServerTravel("/Game/FirstPersonCPP/Maps/FirstPersonExampleMap?listen");
+		GetWorld()->ServerTravel(SelectedMapURL + "?listen");
 	}
 }
 
@@ -136,6 +163,38 @@ void USteamGameInstance::JoinServer(int32 ArrayIndex)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Joining server at index : %d"), ArrayIndex);
 		SessionInterface->JoinSession(0, MySessionName, Result);
+	}
+}
+
+void USteamGameInstance::FillMapList()
+{
+	for (FMapInfo Map : MapList)
+	{
+		FMapNameDel.Broadcast(Map.MapName);
+	}
+}
+
+UTexture2D* USteamGameInstance::GetMapImage(FString MapName)
+{
+	for (FMapInfo Map : MapList)
+	{
+		if (Map.MapName.Equals(MapName))
+		{
+			return Map.MapImage;
+		}
+		
+	}
+	return nullptr;
+}
+
+void USteamGameInstance::SetSelectedMap(FString MapName)
+{
+	for (FMapInfo Map : MapList)
+	{
+		if (Map.MapName.Equals(MapName))
+		{
+			SelectedMapURL = Map.MapURL;
+		}
 	}
 }
 

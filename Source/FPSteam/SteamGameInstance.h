@@ -49,8 +49,18 @@ public:
 	}
 };
 
+USTRUCT()
+struct FMapInfo
+{
+	GENERATED_BODY()
+public:
+	FString MapName;
+	FString MapURL;
+	class UTexture2D* MapImage;
+};
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerDel, FServerInfo, ServerListDel);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerSearchingDel, bool, SearchingForServer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMapInfoDel, FString, FMapNameDel);
 /**
  * 
  */
@@ -64,11 +74,20 @@ public:
 	
 protected:
 
+	
 	FName MySessionName;
+
+	TArray<FMapInfo>MapList;
+
+	FString SelectedMapURL;
 	
 	UPROPERTY(BlueprintAssignable)
 	FServerDel ServerListDel;
 
+
+	UPROPERTY(BlueprintAssignable)
+	FMapInfoDel FMapNameDel;
+	
 	UPROPERTY(BlueprintAssignable)
 	FServerSearchingDel SearchingForServer;
 
@@ -91,5 +110,12 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void JoinServer(int32 ArrayIndex);
 
+	UFUNCTION(BlueprintCallable)
+	void FillMapList();
 	
+	UFUNCTION(BlueprintCallable)
+	class UTexture2D* GetMapImage(FString MapName);
+
+	UFUNCTION(BlueprintCallable)
+	void SetSelectedMap(FString MapName);
 };
